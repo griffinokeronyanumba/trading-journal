@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Trading Journal
 
-## Getting Started
+A private trading journal and backtesting analytics app.
 
-First, run the development server:
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui (Radix) · Supabase (Auth, Postgres, Storage) · Recharts · Vitest · Vercel
+
+## Status
+
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | Foundation, navigation, login | ✅ Done — see [docs/PHASE-1.md](docs/PHASE-1.md) |
+| 2 | Database & accounts | ⏳ Next |
+| 3 | Instruments & trade entry | — |
+| 4 | Screenshots & trade detail | — |
+| 5 | Dashboard & analytics | — |
+| 6 | Calendar, strategies, reviews | — |
+| 7 | Testing, hardening, deployment | — |
+
+Full architecture and decisions: [docs/BLUEPRINT.md](docs/BLUEPRINT.md)
+
+## Run locally
+
+Requires Node.js 20.9+ (22 LTS recommended).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # then fill in your Supabase URL + publishable key
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+|---|---|
+| `npm run dev` | Development server |
+| `npm run build` / `npm start` | Production build / serve it |
+| `npm run typecheck` | TypeScript check |
+| `npm run lint` | ESLint |
+| `npm test` | Unit tests (Vitest) |
+| `npm run check` | All of the above — run before every commit |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project layout
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/(auth)/login        sign-in page (registration is closed)
+  app/(app)/...           every signed-in page, sharing the sidebar/topbar layout
+  components/ui           shadcn/ui primitives (restyled for the dark theme)
+  components/layout       sidebar, topbar, account selector, page header
+  features/<feature>      server actions, schemas, queries and components per feature
+  lib/supabase            browser/server/proxy Supabase clients
+  lib/auth.ts             requireUser() server-side guard
+  proxy.ts                session refresh + route protection (Next 16's "middleware")
+supabase/migrations       numbered SQL migrations (from Phase 2)
+docs/                     blueprint and per-phase notes
+```
