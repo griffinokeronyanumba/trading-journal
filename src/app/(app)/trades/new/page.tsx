@@ -7,18 +7,19 @@ import { getProfile } from "@/features/accounts/queries";
 import { TradeForm } from "@/features/trades/components/trade-form";
 import { blankTradeInput, duplicateInput, getTradeFormData, tradeToInput } from "@/features/trades/form-data";
 import { getTradeForEdit } from "@/features/trades/queries";
+import { isDay } from "@/lib/periods";
 
 export const metadata: Metadata = { title: "New trade" };
 
 export default async function NewTradePage({ searchParams }: PageProps<"/trades/new">) {
-  const { duplicate } = await searchParams;
+  const { duplicate, date } = await searchParams;
   const [data, base, profile] = await Promise.all([getTradeFormData(), blankTradeInput(), getProfile()]);
-  let initial = base;
+  let initial = isDay(date) ? { ...base, trade_date: date } : base;
   let duplicated = false;
   if (typeof duplicate === "string" && /^[0-9a-f-]{36}$/i.test(duplicate)) {
     const src = await getTradeForEdit(duplicate);
     if (src) {
-      initial = duplicateInput(tradeToInput(src.trade, src, profile.timezone), base);
+      initial = duplicateInput(tradeToInput(src.trade, src, profile.timezone), initial);
       duplicated = true;
     }
   }

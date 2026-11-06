@@ -185,6 +185,20 @@ export type SaveTradePayload = {
   rule_checks: { rule_id: string; followed: boolean }[];
 };
 
+export type SaveStrategyPayload = {
+  strategy: { id?: string; name: string; description: string | null; entry_conditions: string | null; exit_rules: string | null; notes: string | null; is_active: boolean };
+  rules: { id?: string; rule_text: string }[];
+  confluence_ids: string[];
+  session_ids: string[];
+};
+
+export type SaveReviewPayload = {
+  review: Omit<Review, "id" | "user_id" | "created_at" | "updated_at">;
+  mistake_ids: string[];
+  best_trade_ids: string[];
+  worst_trade_ids: string[];
+};
+
 // ---------------------------------------------------------------------
 // Supabase client generic. Insert/Update are deliberately permissive
 // (Partial) — the database enforces required columns and constraints,
@@ -224,7 +238,11 @@ export type Database = {
       review_trades: T<ReviewTrade>;
     };
     Views: { trades_enriched: V<TradeEnriched> };
-    Functions: { save_trade: { Args: { p: SaveTradePayload }; Returns: string } };
+    Functions: {
+      save_trade: { Args: { p: SaveTradePayload }; Returns: string };
+      save_strategy: { Args: { p: SaveStrategyPayload }; Returns: string };
+      save_review: { Args: { p: SaveReviewPayload }; Returns: string };
+    };
     Enums: {
       account_type: AccountType;
       instrument_category: InstrumentCategory;

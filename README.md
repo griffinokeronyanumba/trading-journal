@@ -13,8 +13,8 @@ A private trading journal and backtesting analytics app.
 | 3 | Instruments & trade entry | ✅ Done — see [docs/PHASE-3.md](docs/PHASE-3.md) |
 | 4 | Screenshots & trade detail | ✅ Done — see [docs/PHASE-4.md](docs/PHASE-4.md) |
 | 5 | Dashboard & analytics | ✅ Done — see [docs/PHASE-5.md](docs/PHASE-5.md) |
-| 6 | Calendar, strategies, reviews | ⏳ Next |
-| 7 | Testing, hardening, deployment | — |
+| 6 | Calendar, strategies, reviews | ✅ Done — see [docs/PHASE-6.md](docs/PHASE-6.md) |
+| 7 | Testing, hardening, deployment | ⏳ Next |
 
 Full architecture and decisions: [docs/BLUEPRINT.md](docs/BLUEPRINT.md)
 
