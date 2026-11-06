@@ -1,6 +1,8 @@
 "use client";
 
-import { ChevronsUpDown, Layers3 } from "lucide-react";
+import { useOptimistic, useTransition } from "react";
+import Link from "next/link";
+import { ChevronsUpDown, Layers3, Loader2, Settings2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,29 +15,28 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { setActiveAccount } from "@/features/accounts/actions";
 
 export type AccountOption = { id: string; name: string; currency: string };
 
-/**
- * Switches the active trading account for every page.
- * Phase 1: renders with no accounts. Phase 2 passes real accounts and
- * persists the selection in a cookie.
- */
-export function AccountSelector({
-  accounts = [],
-  selectedId = "all",
-}: {
-  accounts?: AccountOption[];
-  selectedId?: string;
-}) {
-  const selected = accounts.find((a) => a.id === selectedId);
+/** Switches the active trading account for every page (stored in a cookie). */
+export function AccountSelector({ accounts, selectedId }: { accounts: AccountOption[]; selectedId: string }) {
+  const [pending, startTransition] = useTransition();
+  const [optimisticId, setOptimisticId] = useOptimistic(selectedId);
+  const selected = accounts.find((a) => a.id === optimisticId);
   const label = selected ? selected.name : "All accounts";
+
+  const choose = (id: string) =>
+    startTransition(async () => {
+      setOptimisticId(id);
+      await setActiveAccount(id);
+    });
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 max-w-56 justify-between gap-2 bg-card font-normal">
-          <Layers3 className="text-muted-foreground" />
+        <Button variant="outline" size="sm" className="h-8 max-w-60 justify-between gap-2 bg-card font-normal" aria-label="Select trading account">
+          {pending ? <Loader2 className="animate-spin text-muted-foreground" /> : <Layers3 className="text-muted-foreground" />}
           <span className="truncate">{label}</span>
           {selected && <span className="num text-xs text-muted-foreground">{selected.currency}</span>}
           <ChevronsUpDown className="ml-auto text-muted-foreground" />
@@ -43,7 +44,7 @@ export function AccountSelector({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
         <DropdownMenuLabel>Trading account</DropdownMenuLabel>
-        <DropdownMenuRadioGroup value={selectedId}>
+        <DropdownMenuRadioGroup value={optimisticId} onValueChange={choose}>
           <DropdownMenuRadioItem value="all">All accounts</DropdownMenuRadioItem>
           {accounts.map((a) => (
             <DropdownMenuRadioItem key={a.id} value={a.id}>
@@ -52,14 +53,12 @@ export function AccountSelector({
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>
-        {accounts.length === 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem disabled className="text-xs">
-              Account management arrives in Phase 2
-            </DropdownMenuItem>
-          </>
-        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/accounts">
+            <Settings2 /> {accounts.length === 0 ? "Create an account" : "Manage accounts"}
+          </Link>
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
