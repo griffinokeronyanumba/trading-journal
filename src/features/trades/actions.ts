@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getProfile } from "@/features/accounts/queries";
+import { removeScreenshotFiles } from "@/features/screenshots/storage-cleanup";
 import { dbErrorMessage, fail, ok, zodFieldErrors, type ActionResult } from "@/lib/action-result";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -82,6 +83,11 @@ export async function saveTrade(id: string | null, input: unknown): Promise<Acti
 export async function deleteTrade(id: string): Promise<ActionResult> {
   await requireUser();
   const supabase = await createClient();
+  try {
+    await removeScreenshotFiles(supabase, { tradeId: id });
+  } catch (e) {
+    return fail(`Couldn't delete the trade's screenshots: ${(e as Error).message}`);
+  }
   const { error } = await supabase.from("trades").delete().eq("id", id);
   if (error) return fail(dbErrorMessage(error, "trade"));
   revalidatePath("/", "layout");

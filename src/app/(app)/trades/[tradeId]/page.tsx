@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getProfile } from "@/features/accounts/queries";
+import { ScreenshotManager } from "@/features/screenshots/components/screenshot-manager";
+import { getScreenshots } from "@/features/screenshots/queries";
 import { getReferenceLists } from "@/features/settings/queries";
 import { DeleteTradeButton } from "@/features/trades/components/delete-trade-button";
 import { DirectionBadge, OutcomeBadge } from "@/features/trades/components/trade-badges";
@@ -32,13 +34,14 @@ function Item({ label, children, className }: { label: string; children: React.R
 export default async function TradeDetailPage({ params }: PageProps<"/trades/[tradeId]">) {
   const { tradeId } = await params;
   if (!/^[0-9a-f-]{36}$/i.test(tradeId)) notFound();
-  await requireUser();
+  const user = await requireUser();
   const supabase = await createClient();
-  const [{ data: t }, lists, profile, checks] = await Promise.all([
+  const [{ data: t }, lists, profile, checks, shots] = await Promise.all([
     supabase.from("trades_enriched").select("*").eq("id", tradeId).maybeSingle(),
     getReferenceLists(),
     getProfile(),
     supabase.from("trade_rule_checks").select("rule_id,followed").eq("trade_id", tradeId),
+    getScreenshots(tradeId),
   ]);
   if (!t) notFound();
   const c = t.currency;
@@ -80,6 +83,8 @@ export default async function TradeDetailPage({ params }: PageProps<"/trades/[tr
           </div>
         ))}
       </section>
+
+      <ScreenshotManager tradeId={t.id} userId={user.id} shots={shots} />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>

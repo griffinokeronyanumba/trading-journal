@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 
+import { removeScreenshotFiles } from "@/features/screenshots/storage-cleanup";
 import { ACTIVE_ACCOUNT_COOKIE, ALL_ACCOUNTS } from "@/lib/active-account";
 import { dbErrorMessage, fail, ok, zodFieldErrors, type ActionResult } from "@/lib/action-result";
 import { requireUser } from "@/lib/auth";
@@ -40,6 +41,11 @@ export async function setAccountArchived(id: string, archived: boolean): Promise
 export async function deleteAccount(id: string): Promise<ActionResult> {
   await requireUser();
   const supabase = await createClient();
+  try {
+    await removeScreenshotFiles(supabase, { accountId: id });
+  } catch (e) {
+    return fail(`Couldn't delete the account's screenshots: ${(e as Error).message}`);
+  }
   const { error } = await supabase.from("trading_accounts").delete().eq("id", id);
   if (error) return fail(dbErrorMessage(error, "account"));
   revalidatePath("/", "layout");
