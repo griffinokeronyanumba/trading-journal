@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Copy, ListOrdered, Pencil, Plus } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, Copy, Download, ListOrdered, Pencil, Plus, Upload } from "lucide-react";
 
 import { PageHeader } from "@/components/layout/page-header";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,13 @@ export default async function TradesPage({ searchParams }: PageProps<"/trades">)
       <PageHeader
         title="Trades"
         description={active ? `Trades in ${active.name}` : "Trades across all accounts"}
-        actions={<Button asChild size="sm"><Link href="/trades/new"><Plus /> New trade</Link></Button>}
+        actions={
+          <>
+            <Button asChild variant="ghost" size="sm"><Link href="/trades/import"><Upload /> Import</Link></Button>
+            <Button asChild variant="outline" size="sm"><a href={`/api/export/trades?account=${active?.id ?? "all"}`} download><Download /> Export CSV</a></Button>
+            <Button asChild size="sm"><Link href="/trades/new"><Plus /> New trade</Link></Button>
+          </>
+        }
       />
       <TradeFilters
         instruments={instruments.map((i) => ({ value: i.id, label: i.symbol }))}

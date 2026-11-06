@@ -81,9 +81,9 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
       </section>
 
       <div>
-        <div className="grid grid-cols-7 gap-1 sm:grid-cols-[repeat(7,minmax(0,1fr))_minmax(0,0.9fr)] sm:gap-1.5" role="grid" aria-label={`Trading calendar for ${formatDay(`${month}-01`, "MMMM yyyy")}`}>
-          {WEEK.map((d) => <div key={d} role="columnheader" className="px-1 pb-1 text-[11px] font-medium text-muted-foreground sm:px-2">{d}</div>)}
-          <div role="columnheader" className="hidden px-2 pb-1 text-[11px] font-medium text-muted-foreground sm:block">Week</div>
+        <section className="grid grid-cols-7 gap-1 sm:grid-cols-[repeat(7,minmax(0,1fr))_minmax(0,0.9fr)] sm:gap-1.5" aria-label={`Trading calendar for ${formatDay(`${month}-01`, "MMMM yyyy")}`}>
+          {WEEK.map((d) => <div key={d} aria-hidden className="px-1 pb-1 text-[11px] font-medium text-muted-foreground sm:px-2">{d}</div>)}
+          <div aria-hidden className="hidden px-2 pb-1 text-[11px] font-medium text-muted-foreground sm:block">Week</div>
           {weeks.map((week) => {
             const wTrades = week.flatMap((d) => (d.inMonth ? byDay.get(d.day) ?? [] : []));
             const ws = summarize(wTrades, band);
@@ -97,21 +97,19 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
                 return (
                   <Link
                     key={day}
-                    role="gridcell"
                     href={href({ day })}
                     scroll={false}
-                    aria-label={`${formatDay(day, "EEEE d MMMM")}${has ? `: ${s.totalTrades} trades, ${fmt(v)}` : ": no trades"}`}
-                    aria-selected={selected === day}
+                    aria-current={selected === day ? "date" : undefined}
                     data-testid={`day-${day}`}
                     className={cn(
                       "flex min-h-14 flex-col gap-0.5 rounded-md border p-1 text-left transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring sm:min-h-24 sm:gap-1 sm:p-2",
-                      inside ? "border-border bg-card hover:border-primary/50" : "border-transparent bg-card/30 text-muted-foreground/50",
+                      inside ? "border-border bg-card hover:border-primary/50" : "border-transparent bg-card/30 text-muted-foreground",
                       has && s.totalTrades > 0 && (v > 0 ? "border-chart-pos/40 bg-chart-pos/10" : v < 0 ? "border-chart-neg/40 bg-chart-neg/10" : ""),
                       selected === day && "ring-2 ring-primary",
                     )}
                   >
                     <span className={cn("num flex items-center justify-between text-xs", day === today && "font-semibold text-primary")}>
-                      {parseDay(day).getDate()}
+                      <span>{parseDay(day).getDate()}<span className="sr-only"> {formatDay(day, "EEEE MMMM")}{has ? "" : ", no trades"}</span></span>
                       {breached && <AlertTriangle className="size-3.5 text-warning" aria-label="Daily loss limit breached" />}
                     </span>
                     {s.totalTrades > 0 && (
@@ -126,7 +124,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
                   </Link>
                 );
               }),
-              <div key={`w-${week[0].day}`} role="gridcell" className="hidden min-h-24 flex-col justify-center gap-0.5 rounded-md border border-dashed border-border px-2 sm:flex" data-testid={`week-${week[0].day}`}>
+              <div key={`w-${week[0].day}`} className="hidden min-h-24 flex-col justify-center gap-0.5 rounded-md border border-dashed border-border px-2 sm:flex" data-testid={`week-${week[0].day}`}>
                 {ws.totalTrades > 0 ? (
                   <>
                     <span className={cn("num text-sm", toneClass(value(ws)))}>{fmt(value(ws))}</span>
@@ -136,7 +134,7 @@ export default async function CalendarPage({ searchParams }: PageProps<"/calenda
               </div>,
             ];
           })}
-        </div>
+        </section>
       </div>
 
       {selected && (

@@ -242,6 +242,7 @@ export type Database = {
       save_trade: { Args: { p: SaveTradePayload }; Returns: string };
       save_strategy: { Args: { p: SaveStrategyPayload }; Returns: string };
       save_review: { Args: { p: SaveReviewPayload }; Returns: string };
+      import_trades: { Args: { p: SaveTradePayload[] }; Returns: number };
     };
     Enums: {
       account_type: AccountType;

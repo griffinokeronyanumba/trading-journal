@@ -4,19 +4,21 @@ A private trading journal and backtesting analytics app.
 
 **Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · shadcn/ui (Radix) · Supabase (Auth, Postgres, Storage) · Recharts · Vitest · Vercel
 
-## Status
+## Status: v1.0 — all 7 phases complete
 
-| Phase | Scope | Status |
+| Phase | Scope | Notes |
 |---|---|---|
-| 1 | Foundation, navigation, login | ✅ Done — see [docs/PHASE-1.md](docs/PHASE-1.md) |
-| 2 | Database & accounts | ✅ Done — see [docs/PHASE-2.md](docs/PHASE-2.md) |
-| 3 | Instruments & trade entry | ✅ Done — see [docs/PHASE-3.md](docs/PHASE-3.md) |
-| 4 | Screenshots & trade detail | ✅ Done — see [docs/PHASE-4.md](docs/PHASE-4.md) |
-| 5 | Dashboard & analytics | ✅ Done — see [docs/PHASE-5.md](docs/PHASE-5.md) |
-| 6 | Calendar, strategies, reviews | ✅ Done — see [docs/PHASE-6.md](docs/PHASE-6.md) |
-| 7 | Testing, hardening, deployment | ⏳ Next |
+| 1 | Foundation, navigation, login | [PHASE-1](docs/PHASE-1.md) |
+| 2 | Database & accounts | [PHASE-2](docs/PHASE-2.md) |
+| 3 | Instruments & trade entry | [PHASE-3](docs/PHASE-3.md) |
+| 4 | Screenshots & trade detail | [PHASE-4](docs/PHASE-4.md) |
+| 5 | Dashboard & analytics | [PHASE-5](docs/PHASE-5.md) |
+| 6 | Calendar, strategies, reviews | [PHASE-6](docs/PHASE-6.md) |
+| 7 | CSV, hardening, deployment | [PHASE-7](docs/PHASE-7.md) |
 
-Full architecture and decisions: [docs/BLUEPRINT.md](docs/BLUEPRINT.md)
+- **Deploying:** [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+- **Using it:** [docs/USER-GUIDE.md](docs/USER-GUIDE.md)
+- **Architecture & decisions:** [docs/BLUEPRINT.md](docs/BLUEPRINT.md)
 
 ## Run locally
 
@@ -24,9 +26,11 @@ Requires Node.js 20.9+ (22 LTS recommended).
 
 ```bash
 npm install
-cp .env.example .env.local   # then fill in your Supabase URL + publishable key
+cp .env.example .env.local   # fill in your Supabase URL + publishable key
 npm run dev                  # http://localhost:3000
 ```
+
+Database: run the files in `supabase/migrations/` in order in the Supabase SQL Editor (see DEPLOYMENT.md).
 
 ## Scripts
 
@@ -34,23 +38,22 @@ npm run dev                  # http://localhost:3000
 |---|---|
 | `npm run dev` | Development server |
 | `npm run build` / `npm start` | Production build / serve it |
-| `npm run typecheck` | TypeScript check |
-| `npm run lint` | ESLint |
-| `npm test` | Unit tests (Vitest) |
-| `npm run check` | All of the above — run before every commit |
+| `npm run typecheck` · `npm run lint` · `npm test` | TypeScript · ESLint · unit tests |
+| `npm run check` | All of the above + build — run before every commit |
 
 ## Project layout
 
 ```
 src/
-  app/(auth)/login        sign-in page (registration is closed)
-  app/(app)/...           every signed-in page, sharing the sidebar/topbar layout
-  components/ui           shadcn/ui primitives (restyled for the dark theme)
-  components/layout       sidebar, topbar, account selector, page header
-  features/<feature>      server actions, schemas, queries and components per feature
-  lib/supabase            browser/server/proxy Supabase clients
-  lib/auth.ts             requireUser() server-side guard
-  proxy.ts                session refresh + route protection (Next 16's "middleware")
-supabase/migrations       numbered SQL migrations (from Phase 2)
-docs/                     blueprint and per-phase notes
+  app/(auth)/login          sign-in (registration closed)
+  app/(app)/...             dashboard, trades, analytics, calendar, strategies, reviews, accounts, instruments, settings
+  app/api/export/...        CSV export + import template
+  components/ui             shadcn/ui primitives (dark theme)
+  components/charts         Recharts components (validated palette)
+  features/<feature>        server actions, schemas, queries, components per feature
+  lib/analytics             statistics engine (pure, unit-tested)
+  lib/supabase              browser/server/proxy clients
+  proxy.ts                  session refresh + route protection
+supabase/migrations         0001 … 0006, run in order
+docs/                       blueprint, per-phase notes, deployment, user guide
 ```

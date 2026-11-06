@@ -47,8 +47,8 @@ export function ProfileForm({ profile, email }: { profile: Profile; email: strin
 
   return (
     <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2" noValidate>
-      <Field label="Email (sign-in)">
-        <Input value={email} disabled readOnly />
+      <Field label="Email (sign-in)" htmlFor="account_email">
+        <Input id="account_email" value={email} disabled readOnly />
       </Field>
       <Field label="Display name" htmlFor="display_name" error={e.display_name?.message}>
         <Input id="display_name" placeholder="Optional" {...form.register("display_name")} />

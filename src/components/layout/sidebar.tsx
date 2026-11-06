@@ -11,8 +11,8 @@ export function Sidebar() {
       <div className="flex-1 overflow-y-auto py-4">
         <NavLinks />
       </div>
-      <div className="border-t border-sidebar-border px-5 py-3 text-[11px] text-muted-foreground/70">
-        <span className="num">v0.6</span> · Phase 6
+      <div className="border-t border-sidebar-border px-5 py-3 text-[11px] text-muted-foreground">
+        <span className="num">v1.0</span>
       </div>
     </aside>
   );

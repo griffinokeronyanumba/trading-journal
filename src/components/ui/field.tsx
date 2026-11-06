@@ -30,7 +30,7 @@ function Field({
           {error}
         </p>
       ) : hint ? (
-        <p className="text-xs text-muted-foreground/80">{hint}</p>
+        <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
     </div>
   );

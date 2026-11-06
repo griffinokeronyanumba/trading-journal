@@ -21,7 +21,7 @@
 | Data | CSV export (Phase 7); CSV import considered (Phase 7, stretch) |
 | Analytics | Account-level summaries included |
 | Security | Ownership enforced by RLS + composite FKs on trades and screenshots, plus storage path policies |
-| Workflow | GitHub repository, incremental commits per phase, `docs/PHASE-n.md` written after each phase |
+| Workflow | **Updated 6 Nov:** local git commits per phase, delivered as a zip (with `.git` history) after each phase; the user's latest zip is the master copy. GitHub push + Vercel deployment happen **once, at the end (Phase 7)**. Phase 1 "done" = login works locally. `docs/PHASE-n.md` written after each phase |
 | Supabase | Hosted project only (no CLI/Docker for now). Migrations kept in `supabase/migrations/` and run via the SQL editor |
 
 ### Schema changes resulting from these decisions

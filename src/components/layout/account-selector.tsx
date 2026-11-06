@@ -35,7 +35,8 @@ export function AccountSelector({ accounts, selectedId }: { accounts: AccountOpt
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 max-w-60 justify-between gap-2 bg-card font-normal" aria-label="Select trading account">
+        <Button variant="outline" size="sm" className="h-8 max-w-60 justify-between gap-2 bg-card font-normal" data-testid="account-selector">
+          <span className="sr-only">Trading account:</span>
           {pending ? <Loader2 className="animate-spin text-muted-foreground" /> : <Layers3 className="text-muted-foreground" />}
           <span className="truncate">{label}</span>
           {selected && <span className="num text-xs text-muted-foreground">{selected.currency}</span>}
