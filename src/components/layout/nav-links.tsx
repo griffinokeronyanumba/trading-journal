@@ -1,14 +1,27 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 import { isActive, NAV_GROUPS } from "./nav-items";
 
+/** Highlights the current page. The URL is only known at request time, so the
+ *  links first render without a highlight and the active state streams in. */
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const pathname = usePathname();
+  return (
+    <Suspense fallback={<NavLinksView pathname="" onNavigate={onNavigate} />}>
+      <ActiveNavLinks onNavigate={onNavigate} />
+    </Suspense>
+  );
+}
 
+function ActiveNavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  return <NavLinksView pathname={usePathname()} onNavigate={onNavigate} />;
+}
+
+function NavLinksView({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   return (
     <nav className="flex flex-col gap-6 px-3" aria-label="Main">
       {NAV_GROUPS.map((group) => (

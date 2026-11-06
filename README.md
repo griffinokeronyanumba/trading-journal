@@ -9,9 +9,9 @@ A private trading journal and backtesting analytics app.
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | Foundation, navigation, login | ✅ Done — see [docs/PHASE-1.md](docs/PHASE-1.md) |
-| 2 | Database & accounts | ⏳ Next |
-| 3 | Instruments & trade entry | — |
-| 4 | Screenshots & trade detail | — |
+| 2 | Database & accounts | ✅ Done — see [docs/PHASE-2.md](docs/PHASE-2.md) |
+| 3 | Instruments & trade entry | ✅ Done — see [docs/PHASE-3.md](docs/PHASE-3.md) |
+| 4 | Screenshots & trade detail | ⏳ Next |
 | 5 | Dashboard & analytics | — |
 | 6 | Calendar, strategies, reviews | — |
 | 7 | Testing, hardening, deployment | — |

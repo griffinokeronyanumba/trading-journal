@@ -123,6 +123,26 @@ export type Trade = {
   notes: string | null;
 } & Owned & Stamps;
 
+/** Read model from the trades_enriched view (migration 0003). */
+export type TradeEnriched = Trade & {
+  account_name: string;
+  currency: string;
+  symbol: string;
+  instrument_category: InstrumentCategory;
+  strategy_name: string | null;
+  setup_name: string | null;
+  session_name: string | null;
+  grade_label: string | null;
+  grade_rank: number | null;
+  outcome: TradeOutcome | null;
+  weekday: number; // 1 = Monday … 7 = Sunday
+  month: string; // YYYY-MM
+  mistake_ids: string[];
+  confluence_ids: string[];
+  rules_checked: number;
+  rules_broken: number;
+};
+
 export type TradeConfluence = { trade_id: string; confluence_id: string } & Owned;
 export type TradeMistake = { trade_id: string; mistake_tag_id: string } & Owned;
 export type TradeRuleCheck = { trade_id: string; rule_id: string; followed: boolean } & Owned;
@@ -157,6 +177,13 @@ export type Review = {
 
 export type ReviewMistake = { review_id: string; mistake_tag_id: string } & Owned;
 export type ReviewTrade = { review_id: string; trade_id: string; role: ReviewTradeRole } & Owned;
+
+export type SaveTradePayload = {
+  trade: Partial<Omit<Trade, "net_pnl" | "r_multiple" | "planned_rr" | "potential_reward" | "user_id" | "created_at" | "updated_at">>;
+  confluence_ids: string[];
+  mistake_ids: string[];
+  rule_checks: { rule_id: string; followed: boolean }[];
+};
 
 // ---------------------------------------------------------------------
 // Supabase client generic. Insert/Update are deliberately permissive
@@ -196,8 +223,8 @@ export type Database = {
       review_mistakes: T<ReviewMistake>;
       review_trades: T<ReviewTrade>;
     };
-    Views: Record<string, V<Record<string, unknown>>>;
-    Functions: Record<string, { Args: Record<string, unknown>; Returns: unknown }>;
+    Views: { trades_enriched: V<TradeEnriched> };
+    Functions: { save_trade: { Args: { p: SaveTradePayload }; Returns: string } };
     Enums: {
       account_type: AccountType;
       instrument_category: InstrumentCategory;

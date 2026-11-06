@@ -12,7 +12,7 @@ export function Sidebar() {
         <NavLinks />
       </div>
       <div className="border-t border-sidebar-border px-5 py-3 text-[11px] text-muted-foreground/70">
-        <span className="num">v0.2</span> · Phase 2
+        <span className="num">v0.3</span> · Phase 3
       </div>
     </aside>
   );
