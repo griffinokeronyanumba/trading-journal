@@ -251,5 +251,123 @@ export function groupSummaries<T extends TradeFact>(
   }
   return [...groups.entries()]
     .map(([key, list]) => ({ key, label: key === "__none__" ? "Not set" : labelOf(key), summary: summarize(list, breakevenBandR) }))
+    .filter((g) => g.summary.totalTrades > 0) // groups made only of open trades say nothing yet
     .sort((a, b) => b.summary.netPnl - a.summary.netPnl);
+}
+
+// ---------------------------------------------------------------------
+// Series for charts
+// ---------------------------------------------------------------------
+export type PeriodPoint = { key: string; pnl: number; r: number; trades: number; wins: number; losses: number };
+
+function periodSeries(trades: TradeFact[], keyOf: (t: TradeFact) => string, band: number): PeriodPoint[] {
+  const map = new Map<string, PeriodPoint>();
+  for (const t of trades.filter(isClosed)) {
+    const k = keyOf(t);
+    const p = map.get(k) ?? { key: k, pnl: 0, r: 0, trades: 0, wins: 0, losses: 0 };
+    p.pnl += t.net_pnl;
+    p.r += t.r_multiple ?? 0;
+    p.trades++;
+    const o = deriveOutcome(t, band);
+    if (o === "win") p.wins++;
+    if (o === "loss") p.losses++;
+    map.set(k, p);
+  }
+  return [...map.values()]
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map((p) => ({ ...p, pnl: round(p.pnl), r: round(p.r) }));
+}
+
+export const monthlySeries = (trades: TradeFact[], band: number) => periodSeries(trades, (t) => t.trade_date.slice(0, 7), band);
+export const dailySeries = (trades: TradeFact[], band: number) => periodSeries(trades, (t) => t.trade_date, band);
+
+/** R-multiple histogram in 0.5R buckets, clamped to [−3, +5]. */
+export function rHistogram(trades: TradeFact[]) {
+  const lo = -3, hi = 5, step = 0.5;
+  const buckets: { from: number; to: number; label: string; count: number }[] = [];
+  for (let x = lo; x < hi; x += step) {
+    const from = x, to = x + step;
+    const label = from === lo ? `≤ ${to}R` : to === hi ? `≥ ${from}R` : `${from} to ${to}`;
+    buckets.push({ from, to, label, count: 0 });
+  }
+  for (const t of trades) {
+    if (!isClosed(t) || t.r_multiple == null) continue;
+    const r = Math.min(Math.max(t.r_multiple, lo), hi - 1e-9);
+    const i = Math.floor((r - lo) / step);
+    buckets[i].count++;
+  }
+  return buckets;
+}
+
+// ---------------------------------------------------------------------
+// Tag analyses (mistakes, rule adherence)
+// ---------------------------------------------------------------------
+export type TaggedFact = TradeFact & { mistake_ids?: string[]; followed_rules?: boolean | null };
+
+/** For each mistake: how often, and what trades with it cost in R and money. */
+export function mistakeImpact(trades: TaggedFact[], names: Map<string, string>, band: number) {
+  const closed = trades.filter(isClosed);
+  const rows = [...names.entries()].map(([id, name]) => {
+    const withIt = closed.filter((t) => t.mistake_ids?.includes(id));
+    const s = summarize(withIt, band);
+    return { id, name, count: withIt.length, share: closed.length ? round((withIt.length / closed.length) * 100) : 0, summary: s };
+  });
+  return rows.filter((r) => r.count > 0).sort((a, b) => b.count - a.count || a.summary.totalR - b.summary.totalR);
+}
+
+export function adherenceBreakdown(trades: TaggedFact[], band: number) {
+  const groups = { followed: [] as TaggedFact[], broken: [] as TaggedFact[], unknown: [] as TaggedFact[] };
+  for (const t of trades) (t.followed_rules === true ? groups.followed : t.followed_rules === false ? groups.broken : groups.unknown).push(t);
+  return {
+    followed: summarize(groups.followed, band),
+    broken: summarize(groups.broken, band),
+    unknown: summarize(groups.unknown, band),
+    adherenceRate: groups.followed.length + groups.broken.length ? round((groups.followed.length / (groups.followed.length + groups.broken.length)) * 100) : null,
+  };
+}
+
+// ---------------------------------------------------------------------
+// Multi-account / multi-currency
+// ---------------------------------------------------------------------
+export type CurrencyGroup = {
+  currency: string;
+  startingBalance: number;
+  summary: Summary;
+  currentBalance: number;
+  returnPct: number;
+  maxDrawdown: Drawdown;
+  curve: EquityPoint[];
+};
+
+/**
+ * Money is never added across currencies. Accounts are pooled per currency:
+ * starting balances summed, trades combined into one equity curve.
+ */
+export function currencyGroups(
+  accounts: { id: string; currency: string; starting_balance: number }[],
+  trades: TradeFact[],
+  band: number,
+): CurrencyGroup[] {
+  const byCurrency = new Map<string, { start: number; ids: Set<string> }>();
+  for (const a of accounts) {
+    const g = byCurrency.get(a.currency) ?? { start: 0, ids: new Set<string>() };
+    g.start += a.starting_balance;
+    g.ids.add(a.id);
+    byCurrency.set(a.currency, g);
+  }
+  return [...byCurrency.entries()].map(([currency, g]) => {
+    const ts = trades.filter((t) => g.ids.has(t.account_id));
+    const curve = equityCurve(ts, g.start);
+    const summary = summarize(ts, band);
+    const current = curve[curve.length - 1].balance;
+    return {
+      currency,
+      startingBalance: round(g.start),
+      summary,
+      currentBalance: current,
+      returnPct: g.start ? round(((current - g.start) / g.start) * 100) : 0,
+      maxDrawdown: maxDrawdown(curve),
+      curve,
+    };
+  });
 }

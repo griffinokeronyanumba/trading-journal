@@ -47,12 +47,17 @@
   --warning: oklch(0.8 0.14 80);
   --destructive: oklch(0.64 0.2 22);
 
-  /* Chart series (Phase 5) */
-  --chart-1: oklch(0.78 0.11 205);
-  --chart-2: oklch(0.76 0.15 160);
-  --chart-3: oklch(0.8 0.14 80);
-  --chart-4: oklch(0.7 0.14 300);
-  --chart-5: oklch(0.68 0.19 22);
+  /* Chart marks — validated for the dark surface (OKLCH L 0.48–0.67, ≥3:1 contrast).
+     Text never uses these; text uses the --profit/--loss tokens above.
+     pos/neg sit in the CVD 6–8 floor band, so every signed chart also encodes
+     sign by position (above/below the zero line) and +/− in labels. */
+  --chart-pos: oklch(0.66 0.15 160);
+  --chart-neg: oklch(0.6 0.19 22);
+  --chart-1: oklch(0.66 0.11 215);
+  --chart-2: oklch(0.66 0.13 80);
+  --chart-3: oklch(0.6 0.14 300);
+  --chart-grid: oklch(0.26 0.008 255);
+  --chart-axis: oklch(0.55 0.012 255);
 }
 
 @theme inline {
@@ -91,11 +96,11 @@
   --color-loss: var(--loss);
   --color-breakeven: var(--breakeven);
   --color-warning: var(--warning);
+  --color-chart-pos: var(--chart-pos);
+  --color-chart-neg: var(--chart-neg);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
 }
 
 @layer base {

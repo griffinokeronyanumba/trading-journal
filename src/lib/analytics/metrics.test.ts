@@ -133,3 +133,56 @@ describe("grouping", () => {
     expect(rows.map((r) => [r.label, r.summary.netPnl])).toEqual([["B", 500], ["A", 200], ["Not set", -295]]);
   });
 });
+
+import { adherenceBreakdown, currencyGroups, dailySeries, mistakeImpact, monthlySeries, rHistogram } from "./metrics";
+
+describe("chart series", () => {
+  it("monthly and daily series", () => {
+    expect(monthlySeries(sample, 0.1)).toEqual([{ key: "2026-01", pnl: 205, r: 2.05, trades: 6, wins: 2, losses: 3 }]);
+    expect(dailySeries(sample, 0.1).map((d) => [d.key, d.pnl, d.trades])).toEqual([
+      ["2026-01-05", 100, 2], ["2026-01-06", 5, 1], ["2026-01-07", -200, 2], ["2026-01-08", 300, 1],
+    ]);
+  });
+  it("R histogram buckets (0.5R, clamped)", () => {
+    const h = rHistogram([...sample, t("x", "2026-02-01", -500, -5), t("y", "2026-02-01", 900, 9)]);
+    const count = (label: string) => h.find((b) => b.label === label)?.count;
+    expect(count("≤ -2.5R")).toBe(1);
+    expect(count("-1 to -0.5")).toBe(3);
+    expect(count("0 to 0.5")).toBe(1);
+    expect(count("2 to 2.5")).toBe(1);
+    expect(count("3 to 3.5")).toBe(1);
+    expect(count("≥ 4.5R")).toBe(1);
+    expect(h.reduce((s, b) => s + b.count, 0)).toBe(8);
+  });
+});
+
+describe("tag analyses", () => {
+  const tagged = sample.map((x, i) => ({ ...x, mistake_ids: i === 1 || i === 3 ? ["m1"] : i === 4 ? ["m1", "m2"] : [], followed_rules: i < 2 ? true : i < 5 ? false : null }));
+  it("mistake impact: count, share and R cost", () => {
+    const rows = mistakeImpact(tagged, new Map([["m1", "Entered early"], ["m2", "Moved SL"], ["m3", "Unused"]]), 0.1);
+    expect(rows.map((r) => [r.name, r.count, r.share, r.summary.totalR])).toEqual([["Entered early", 3, 50, -3], ["Moved SL", 1, 16.67, -1]]);
+  });
+  it("rule adherence", () => {
+    const a = adherenceBreakdown(tagged, 0.1);
+    expect(a.followed.totalTrades).toBe(2);
+    expect(a.broken.totalTrades).toBe(3);
+    expect(a.unknown.totalTrades).toBe(1); // the open trade (no result) is not counted
+    expect(a.adherenceRate).toBe(40);
+  });
+});
+
+describe("currency groups", () => {
+  it("never mixes currencies; pools same-currency accounts", () => {
+    const accounts = [
+      { id: "a1", currency: "USD", starting_balance: 10000 },
+      { id: "a2", currency: "USD", starting_balance: 5000 },
+      { id: "a3", currency: "EUR", starting_balance: 5000 },
+    ];
+    const trades = [...sample, t("e1", "2026-01-05", 50, 0.5, { account_id: "a3" }), t("u2", "2026-01-06", -150, -1, { account_id: "a2" })];
+    const g = currencyGroups(accounts, trades, 0.1);
+    const usd = g.find((x) => x.currency === "USD")!;
+    const eur = g.find((x) => x.currency === "EUR")!;
+    expect([usd.startingBalance, usd.currentBalance, usd.summary.totalTrades, usd.returnPct]).toEqual([15000, 15055, 7, 0.37]);
+    expect([eur.startingBalance, eur.currentBalance, eur.summary.totalTrades]).toEqual([5000, 5050, 1]);
+  });
+});

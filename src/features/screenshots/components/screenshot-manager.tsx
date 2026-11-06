@@ -33,7 +33,7 @@ async function prepare(file: File) {
     maxSizeMB: 1.5,
     fileType: "image/webp",
     initialQuality: 0.85,
-    useWebWorker: true,
+    useWebWorker: false, // the worker build is fetched from a public CDN; keep everything self-hosted
   });
   if (compressed.size > MAX_UPLOAD_BYTES) throw new Error(`${file.name} is too large even after compression.`);
   const bitmap = await createImageBitmap(compressed);
